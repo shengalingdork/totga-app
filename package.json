@@ -2,15 +2,17 @@
   "name": "totga-app",
   "version": "1.0.0",
   "adonis-version": "4.1.0",
-  "description": "The Out-of-office Tracker Generator App",
+  "description": "The Out-of-Office Tracker Generator App",
   "main": "index.js",
   "scripts": {
     "start": "node server.js",
     "test": "node ace test"
   },
   "keywords": [
-    "adonisjs",
-    "adonis-app"
+    "totga-app",
+    "totga",
+    "out-of-office",
+    "tracker"
   ],
   "author": "Shane Camus",
   "license": "UNLICENSED",
@@ -25,7 +27,12 @@
     "@adonisjs/ignitor": "^2.0.8",
     "@adonisjs/lucid": "^6.1.3",
     "@adonisjs/session": "^1.0.27",
-    "@adonisjs/shield": "^1.0.8"
+    "@adonisjs/shield": "^1.0.8",
+    "mysql": "^2.17.1",
+    "standard": "^12.0.1"
+  },
+  "engines": {
+    "node": "10.9.0"
   },
   "devDependencies": {},
   "autoload": {
