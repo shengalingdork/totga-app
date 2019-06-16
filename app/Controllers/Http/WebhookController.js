@@ -4,23 +4,17 @@ const UserAppActivity = use('App/Models/UserAppActivity')
 const UserApp = use('App/Models/UserApp')
 const User = use('App/Models/User')
 const Activity = use('App/Models/Activity')
-// const sampleData = { 
-//   token: 'wEgVKcmlxUlXrhzYO7UOR2Xz',
-//   team_id: 'T0CQRG2GJ',
-//   team_domain: 'cambridge-education',
-//   channel_id: 'D4D5CVCNQ',
-//   channel_name: 'directmessage',
-//   user_id: 'U4D6W530V',
-//   user_name: 'shane_camus',
-//   command: '/totga',
-//   text: 'register Shane',
-//   response_url: 'https://hooks.slack.com/commands/T0CQRG2GJ/668450256455/KwH6TMggjDtp0KGSvhKREJbz',
-//   trigger_id: '668450256487.12841546562.7a54bc8688fc0ef2f6b8a4f265cb9b50'
-// }
 
+const Env = use('Env')
+const Crypto = require('crypto')
+const QS = require('qs')
 
 class WebhookController {
   async slack ({ request }) {
+    if (!this.slackAuthenticate(request)) {
+      return this.response('Who are you?')
+    }
+
     const data = request.post()
     const body = data.text.split(' ')
 
@@ -83,6 +77,29 @@ class WebhookController {
         'Oh, something went wrong. Can you try again?',
         'Or if it really won\'t work, contact TOTGA team.'
       )
+  }
+
+  slackAuthenticate (data) {
+    const headers = data.headers()
+    const body = QS.stringify(data.all(), { format: 'RFC1738' })
+    const timestamp = headers['x-slack-request-timestamp']
+    const sig_full = headers['x-slack-signature']
+
+    const now = Math.floor(new Date().getTime()/1000)
+    if (Math.abs(now - timestamp) > 300) {
+      return false
+    }
+
+    const sig_basestring = 'v0:' + timestamp + ':' + body
+    const sig_full_computed = 'v0=' + Crypto
+      .createHmac('sha256', Env.get('SLACK_SIGNING_SECRET'))
+      .update(sig_basestring, 'utf8')
+      .digest('hex')
+
+    return Crypto.timingSafeEqual(
+      Buffer.from(sig_full_computed, 'utf8'),
+      Buffer.from(sig_full, 'utf-8')
+    )
   }
 
   response (text, attachment) {
