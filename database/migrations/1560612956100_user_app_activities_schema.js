@@ -6,11 +6,11 @@ class UserAppActivitiesSchema extends Schema {
   up () {
     this.create('user_app_activities', (table) => {
       table.increments()
-      table.integer('user_app_id').unsigned().references('id').inTable('user_apps')
-      table.integer('activity_id').unsigned().references('id').inTable('activities')
-      table.datetime('start_at')
-      table.datetime('end_at')
-      table.integer('count').unsigned()
+      table.integer('user_app_id').unsigned().references('id').inTable('user_apps').notNullable()
+      table.integer('activity_id').unsigned().references('id').inTable('activities').notNullable()
+      table.datetime('start_at').notNullable()
+      table.datetime('end_at').notNullable()
+      table.integer('count').unsigned().notNullable()
       table.timestamps()
     })
   }

@@ -6,9 +6,10 @@ class UserAppsSchema extends Schema {
   up () {
     this.create('user_apps', (table) => {
       table.increments()
-      table.integer('user_id').unsigned().references('id').inTable('users')
-      table.integer('app_type').unsigned().references('id').inTable('apps')
-      table.string('app_key', 128).notNullable()
+      table.integer('user_id').unsigned().references('id').inTable('users').notNullable()
+      table.integer('app_type').unsigned().references('id').inTable('apps').notNullable()
+      table.string('user_name', 64).notNullable().unique()
+      table.string('app_key', 128).notNullable().unique()
       table.timestamps()
     })
   }

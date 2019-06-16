@@ -26,6 +26,7 @@ Factory.blueprint('App/Models/UserApp', (faker) => {
       return (await Factory.model('App/Models/User').create()).id
     },
     app_type: faker.integer({ min:1, max:3 }),
+    user_name: faker.twitter(),
     app_key: faker.fbid()
   }
 })
