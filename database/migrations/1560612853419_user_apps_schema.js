@@ -2,9 +2,9 @@
 
 const Schema = use('Schema')
 
-class AppIdsSchema extends Schema {
+class UserAppsSchema extends Schema {
   up () {
-    this.create('app_ids', (table) => {
+    this.create('user_apps', (table) => {
       table.increments()
       table.integer('user_id').unsigned().references('id').inTable('users')
       table.integer('app_type').unsigned().references('id').inTable('apps')
@@ -14,8 +14,8 @@ class AppIdsSchema extends Schema {
   }
 
   down () {
-    this.drop('app_ids')
+    this.drop('user_apps')
   }
 }
 
-module.exports = AppIdsSchema
+module.exports = UserAppsSchema

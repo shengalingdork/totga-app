@@ -20,7 +20,7 @@ Factory.blueprint('App/Models/User', (faker) => {
   }
 })
 
-Factory.blueprint('App/Models/AppId', (faker) => {
+Factory.blueprint('App/Models/UserApp', (faker) => {
   return {
     user_id: async () => {
       return (await Factory.model('App/Models/User').create()).id

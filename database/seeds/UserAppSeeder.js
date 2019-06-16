@@ -2,7 +2,7 @@
 
 /*
 |--------------------------------------------------------------------------
-| AppIdSeeder
+| UserAppSeeder
 |--------------------------------------------------------------------------
 |
 | Make use of the Factory instance to seed database with dummy data or
@@ -12,10 +12,10 @@
 
 const Factory = use('Factory')
 
-class AppIdSeeder {
+class UserAppSeeder {
   async run () {
-    await Factory.model('App/Models/AppId').createMany(8)
+    await Factory.model('App/Models/UserApp').createMany(8)
   }
 }
 
-module.exports = AppIdSeeder
+module.exports = UserAppSeeder

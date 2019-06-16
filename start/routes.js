@@ -16,6 +16,5 @@
 /** @type {typeof import('@adonisjs/framework/src/Route/Manager')} */
 const Route = use('Route')
 
-// Route.on('/').render('welcome')
-Route.get('activity_log/:id', 'ActivityLogController.show')
+Route.get('activity_log/:id', 'ActivityLogController.show').formats(['json'])
 Route.post('activity_log', 'ActivityLogController.create')

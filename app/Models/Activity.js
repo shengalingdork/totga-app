@@ -3,8 +3,12 @@
 const Model = use('Model')
 
 class Activity extends Model {
-  appActivities () {
-    return this.hasMany('App/Models/AppActivity')
+  static get visible () {
+    return ['name','code']
+  }
+
+  userAppActivities () {
+    return this.hasMany('App/Models/UserAppActivity')
   }
 }
 
