@@ -45,7 +45,7 @@ class WebhookController {
 
     if (!userApp && body[0] !== 'register') {
       return this.response(
-        'Kindly register your account first.',
+        'Let\'s register your account.',
         'Type `/totga register <display name>`'
       )
     }
