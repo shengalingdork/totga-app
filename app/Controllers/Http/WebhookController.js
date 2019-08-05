@@ -5,53 +5,74 @@ const UserApp = use('App/Models/UserApp')
 const User = use('App/Models/User')
 const Activity = use('App/Models/Activity')
 
-const Env = use('Env')
-const Crypto = require('crypto')
-const QS = require('qs')
+const SLACK_APP_TYPE_ID = 1
+const SATURDAY_INDEX = 6
+const SUNDAY_INDEX = 0
 
 class WebhookController {
   async slack ({ request }) {
-    if (!this.slackAuthenticate(request)) {
-      return this.response('Who are you?')
-    }
 
     const data = request.post()
+
+    // initial checking of totga command
+    if (!data.text) {
+      return this.response(
+        'That\'s invalid <@'+ data.user_id + '>',
+        'Type `/totga <SL/VL/EL/WFH> <count>`'
+        )
+    }
+
     const body = data.text.split(' ')
 
-    const userApp = await this.fetchUserApp(1, data.user_id)
+    const userApp = await this.fetchUserApp(SLACK_APP_TYPE_ID, data.user_id)
 
+    // check if for registration
     if (body[0] === 'register') {
       
+      // check if user exists
       if (userApp) {
         return this.response('All good. You\'re already done.')
       }
 
+      // check name parameter
       if (!body[1]) {
         return this.response(
           'Add a display name.',
-          'Type `/totga register <display name>`'
+          'Type `/totga register <display name> <email address>`'
         )
       }
 
+      // check email address parameter
+      if (!body[2]) {
+        return this.response(
+          'Add an email address.',
+          'Type `/totga register <display name> <email address>`'
+        )
+      }
+
+      // create user
       const result = await this.createUserApp(
-        1,
+        SLACK_APP_TYPE_ID,
         data.user_id,
         body[1],
+        body[2],
         data.user_name
       )
 
       return result ? this.response('Registered!') : this.response('Can you try that again?')
     } 
 
+    // check if user is not yet registered and not registering
     if (!userApp && body[0] !== 'register') {
       return this.response(
         'Let\'s register your account.',
-        'Type `/totga register <display name>`'
+        'Type `/totga register <display name> <email address>`'
       )
     }
 
     const activity = await this.fetchActivity(body[0])
 
+    // check if totga activity is valid
     if (!activity) {
       return this.response(
         'That\'s invalid <@'+ data.user_id + '>',
@@ -59,8 +80,15 @@ class WebhookController {
         )
     }
 
+    // set 1 as default activity count
     const count = body[1] ? body[1] : 1
 
+    // check if it's not a weekend
+    if (!this.isActivityDateValid()) {
+      return this.response('Oh, but it\'s a weekend?')
+    }
+
+    // create user activity
     const result = await this.createUserAppActivity(
       userApp.id,
       activity.id,
@@ -77,29 +105,6 @@ class WebhookController {
         'Oh, something went wrong. Can you try again?',
         'Or if it really won\'t work, contact TOTGA team.'
       )
-  }
-
-  slackAuthenticate (data) {
-    const headers = data.headers()
-    const body = QS.stringify(data.all(), { format: 'RFC1738' })
-    const timestamp = headers['x-slack-request-timestamp']
-    const sig_full = headers['x-slack-signature']
-
-    const now = Math.floor(new Date().getTime()/1000)
-    if (Math.abs(now - timestamp) > 300) {
-      return false
-    }
-
-    const sig_basestring = 'v0:' + timestamp + ':' + body
-    const sig_full_computed = 'v0=' + Crypto
-      .createHmac('sha256', Env.get('SLACK_SIGNING_SECRET'))
-      .update(sig_basestring, 'utf8')
-      .digest('hex')
-
-    return Crypto.timingSafeEqual(
-      Buffer.from(sig_full_computed, 'utf8'),
-      Buffer.from(sig_full, 'utf-8')
-    )
   }
 
   response (text, attachment) {
@@ -132,11 +137,11 @@ class WebhookController {
     return !activity ? false : activity.toJSON()
   }
 
-  async createUserApp (app_type, app_key, display_name, user_name) {
+  async createUserApp (app_type, app_key, display_name, email_address, user_name) {
     let user = await this.fetchUser(display_name)
 
     if (!user) {
-      user = await this.createUser(display_name)
+      user = await this.createUser(display_name, email_address)
     }
 
     if (!user) {
@@ -157,9 +162,9 @@ class WebhookController {
     }
   }
 
-  async createUser (name) {
+  async createUser (name, email_address) {
     try {
-      const user = await User.create({ name: name })
+      const user = await User.create({ name: name, email_address: email_address })
       return user.toJSON()
     } catch (e) {
       console.log(e)
@@ -183,6 +188,11 @@ class WebhookController {
     }
   }
 
+  isActivityDateValid() {
+    let today = new Date().getDay()
+    return today !== SATURDAY_INDEX && today !== SUNDAY_INDEX
+  }
+
   getStartDate (startAt) {
     let startAtCast = new Date(startAt)
     startAtCast.setHours(0,0,0,0)
@@ -191,7 +201,13 @@ class WebhookController {
 
   getEndDate (startAt, count) {
     let endAt = new Date(startAt)
-    endAt.setDate(parseInt(endAt.getDate()) + parseInt(count - 1))
+    let day = endAt.getDay()
+    endAt.setDate(
+      endAt.getDate() +
+      (count - 1) +
+      (day === SATURDAY_INDEX ? 2 : +!day) +
+      (Math.floor((count - 1) / 5) * 2)
+    )
     endAt.setHours(23,59,59,999)
     return endAt
   }

@@ -16,6 +16,13 @@
 /** @type {typeof import('@adonisjs/framework/src/Route/Manager')} */
 const Route = use('Route')
 
-Route.post('webhook/slack', 'WebhookController.slack')
+Route
+  .post('webhook/slack', 'WebhookController.slack')
+  .middleware(['slackAuth'])
+
+Route.get('webhook/teamCalendar', 'TeamCalendarController.getAccessToken')
+Route.get('webhook/getCalendarActivities', 'TeamCalendarController.getActivities')
+Route.get('webhook/getUser', 'TeamCalendarController.getUserByEmailAddress')
+
 Route.get('activity_log/:id', 'ActivityLogController.show').formats(['json'])
 Route.post('activity_log', 'ActivityLogController.create')

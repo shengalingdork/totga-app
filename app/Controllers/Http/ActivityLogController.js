@@ -8,19 +8,29 @@ class ActivityLogController {
         const id = params.id
         try {
             const userAppActivity = await UserAppActivity.findOrFail(id)
-            userAppActivity.activity = await userAppActivity.activity().fetch()
+            const activity = await userAppActivity.activity().fetch()
             const userApp = await userAppActivity.userApp().fetch()
             const user = await userApp.user().fetch()
             const appType = await userApp.app().fetch()
-    
-            userAppActivity.user = user.name
-            userAppActivity.app = {
-                type: appType.name,
-                key: userApp.app_key
+
+            const activityLog = {
+                activity: activity.code,
+                user: {
+                    name: user.name,
+                    email_address: user.email_address
+                },
+                app: {
+                    type: appType.name,
+                    key: userApp.app_key
+                },
+                startAt: userAppActivity.start_at,
+                endAt: userAppActivity.end_at,
+                count: userAppActivity.count
             }
+
             return response.status(200).send({
                 status:200,
-                data: userAppActivity
+                data: activityLog
             })
         } catch (e) {
             if (request.format() === 'json') {
