@@ -40,8 +40,7 @@ const globalMiddleware = [
 const namedMiddleware = {
   auth: 'Adonis/Middleware/Auth',
   guest: 'Adonis/Middleware/AllowGuestOnly',
-  slackAuth: 'App/Middleware/SlackAuthentication',
-  msGraphAuth: 'App/Middleware/MsGraphAuthentication'
+  slackAuth: 'App/Middleware/SlackAuthentication'
 }
 
 /*

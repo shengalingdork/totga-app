@@ -1,15 +1,26 @@
 'use strict'
 
-const UserAppActivity = use('App/Models/UserAppActivity')
-const UserApp = use('App/Models/UserApp')
-const User = use('App/Models/User')
-const Activity = use('App/Models/Activity')
-
 const SLACK_APP_TYPE_ID = 1
 const SATURDAY_INDEX = 6
 const SUNDAY_INDEX = 0
 
 class WebhookController {
+  static get inject () {
+    return [
+      'App/Repositories/Activity',
+      'App/Repositories/User',
+      'App/Repositories/UserApp',
+      'App/Repositories/UserAppActivity'
+    ]
+  }
+
+  constructor (Activity, User, UserApp, UserAppActivity) {
+    this.Activity = Activity
+    this.User = User
+    this.UserApp = UserApp
+    this.UserAppActivity = UserAppActivity
+  }
+
   async slack ({ request }) {
 
     const data = request.post()
@@ -24,7 +35,7 @@ class WebhookController {
 
     const body = data.text.split(' ')
 
-    const userApp = await this.fetchUserApp(SLACK_APP_TYPE_ID, data.user_id)
+    const userApp = await this.UserApp.show(SLACK_APP_TYPE_ID, data.user_id)
 
     // check if for registration
     if (body[0] === 'register') {
@@ -51,7 +62,7 @@ class WebhookController {
       }
 
       // create user
-      const result = await this.createUserApp(
+      const result = await this.UserApp.create(
         SLACK_APP_TYPE_ID,
         data.user_id,
         body[1],
@@ -70,7 +81,7 @@ class WebhookController {
       )
     }
 
-    const activity = await this.fetchActivity(body[0])
+    const activity = await this.Activity.show(body[0])
 
     // check if totga activity is valid
     if (!activity) {
@@ -89,7 +100,7 @@ class WebhookController {
     }
 
     // create user activity
-    const result = await this.createUserAppActivity(
+    const result = await this.UserAppActivity.create(
       userApp.id,
       activity.id,
       count,
@@ -119,98 +130,11 @@ class WebhookController {
     return response
   }
 
-  async fetchUserApp (app_type, app_key) {
-    const userApp = await UserApp.query().where({
-      app_type: app_type,
-      app_key: app_key
-    }).first()
-    return !userApp ? false : userApp.toJSON()
-  }
-
-  async fetchUser (name) {
-    const user = await User.query().where('name', name).first()
-    return !user ? false : user.toJSON()
-  }
-
-  async fetchActivity (code) {
-    const activity = await Activity.query().where('code', code).first()
-    return !activity ? false : activity.toJSON()
-  }
-
-  async createUserApp (app_type, app_key, display_name, email_address, user_name) {
-    let user = await this.fetchUser(display_name)
-
-    if (!user) {
-      user = await this.createUser(display_name, email_address)
-    }
-
-    if (!user) {
-      return false
-    }
-
-    try {
-      const userApp = await UserApp.create({
-        user_id: user.id,
-        app_type: app_type,
-        user_name: user_name,
-        app_key: app_key
-      })
-      return userApp.toJSON()
-    } catch (e) {
-      console.log(e)
-      return false
-    }
-  }
-
-  async createUser (name, email_address) {
-    try {
-      const user = await User.create({ name: name, email_address: email_address })
-      return user.toJSON()
-    } catch (e) {
-      console.log(e)
-      return false
-    }
-  }
-
-  async createUserAppActivity (user_app_id, activity_id, count, start_at) {
-    try {
-      const userAppActivity = await UserAppActivity.create({
-        user_app_id: user_app_id,
-        activity_id: activity_id,
-        count: count,
-        start_at: this.getStartDate(start_at),
-        end_at: this.getEndDate(start_at, count)
-      })
-      return userAppActivity.toJSON()
-    } catch (e) {
-      console.log(e)
-      return false
-    }
-  }
-
   isActivityDateValid() {
     let today = new Date().getDay()
     return today !== SATURDAY_INDEX && today !== SUNDAY_INDEX
   }
 
-  getStartDate (startAt) {
-    let startAtCast = new Date(startAt)
-    startAtCast.setHours(0,0,0,0)
-    return startAtCast
-  }
-
-  getEndDate (startAt, count) {
-    let endAt = new Date(startAt)
-    let day = endAt.getDay()
-    endAt.setDate(
-      endAt.getDate() +
-      (count - 1) +
-      (day === SATURDAY_INDEX ? 2 : +!day) +
-      (Math.floor((count - 1) / 5) * 2)
-    )
-    endAt.setHours(23,59,59,999)
-    return endAt
-  }
 }
 
 module.exports = WebhookController
