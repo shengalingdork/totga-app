@@ -2,6 +2,7 @@
 
 /** @type {import('@adonisjs/framework/src/Env')} */
 const Env = use('Env')
+var path = require('path')
 
 module.exports = {
 
@@ -16,7 +17,7 @@ module.exports = {
   |
   */
 
-  name: Env.get('APP_NAME', 'AdonisJs'),
+  name: Env.get('APP_NAME', 'totga-app'),
 
   /*
   |--------------------------------------------------------------------------
@@ -201,7 +202,7 @@ module.exports = {
     */
     console: {
       driver: 'console',
-      name: 'adonis-app',
+      name: 'totga-app',
       level: 'info'
     },
 
@@ -218,8 +219,38 @@ module.exports = {
     */
     file: {
       driver: 'file',
-      name: 'adonis-app',
-      filename: 'adonis.log',
+      name: 'totga-app',
+      filename: 'totga.log',
+      level: 'info'
+    },
+
+    /*
+    |--------------------------------------------------------------------------
+    | Error File Transport
+    |--------------------------------------------------------------------------
+    |
+    | File transport uses file driver too but for errors
+    |
+    */
+    error: {
+      driver: 'custom',
+      name: 'totga-app',
+      filename: path.join(__dirname, '..', 'logs', 'errors.log'),
+      level: 'info'
+    },
+
+    /*
+    |--------------------------------------------------------------------------
+    | Info File Transport
+    |--------------------------------------------------------------------------
+    |
+    | File transport uses file driver too but for infos
+    |
+    */
+    info: {
+      driver: 'custom',
+      name: 'totga-app',
+      filename: path.join(__dirname, '..', 'logs', 'info.log'),
       level: 'info'
     }
   },

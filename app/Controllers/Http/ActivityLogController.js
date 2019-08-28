@@ -4,7 +4,7 @@ const UserAppActivity = use('App/Models/UserAppActivity')
 const ActivityLogNotFoundException = use('App/Exceptions/ActivityLogNotFoundException')
 
 class ActivityLogController {
-    async show ({ params, request, response }) {
+    async show ({ params, response }) {
         const id = params.id
         try {
             const userAppActivity = await UserAppActivity.findOrFail(id)
@@ -33,12 +33,6 @@ class ActivityLogController {
                 data: activityLog
             })
         } catch (e) {
-            if (request.format() === 'json') {
-                return response.status(404).send({
-                    status: 404,
-                    message: 'Activity log cannot found.'
-                })
-            }
             throw new ActivityLogNotFoundException()
         }
     }

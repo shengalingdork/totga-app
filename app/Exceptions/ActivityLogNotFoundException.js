@@ -1,13 +1,15 @@
 'use strict'
 
 const { LogicalException } = require('@adonisjs/generic-exceptions')
-const message = 'Activity log cannot be found'
-const status = 404
-const code = 'E_NOT_FOUND'
 
 class ActivityLogNotFoundException extends LogicalException {
-  constructor () {
-    super (message, status, code)
+  handle (error, { response }) {
+    return response
+      .status(404)
+      .send({
+        status: 404,
+        message: `${error}: Activity log cannot be found`
+      })
   }
 }
 

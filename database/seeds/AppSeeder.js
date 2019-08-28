@@ -14,25 +14,25 @@ const Database = use('Database')
 
 class AppSeeder {
   async run () {
-    const firstId = await Database
-      .insert([
-        {
-          name: 'Slack',
-          created_at: Database.fn.now(),
-          updated_at: Database.fn.now()
-        },
-        {
-          name: 'Messenger',
-          created_at: Database.fn.now(),
-          updated_at: Database.fn.now()
-        },
-        {
-          name: 'Calendar',
-          created_at: Database.fn.now(),
-          updated_at: Database.fn.now()
-        }
-      ])
-      .into('apps')
+    await Database
+        .insert([
+          {
+            name: 'Slack',
+            created_at: Database.fn.now(),
+            updated_at: Database.fn.now()
+          },
+          {
+            name: 'Messenger',
+            created_at: Database.fn.now(),
+            updated_at: Database.fn.now()
+          },
+          {
+            name: 'Calendar',
+            created_at: Database.fn.now(),
+            updated_at: Database.fn.now()
+          }
+        ])
+        .into('apps')
   }
 }
 

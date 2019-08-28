@@ -14,34 +14,34 @@ const Database = use('Database')
 
 class ActivitySeeder {
   async run () {
-    const firstId = await Database
-    .insert([
-      {
-        name: 'Work From Home',
-        code: 'WFH',
-        created_at: Database.fn.now(),
-        updated_at: Database.fn.now()
-      },
-      {
-        name: 'Sick Leave',
-        code: 'SL',
-        created_at: Database.fn.now(),
-        updated_at: Database.fn.now()
-      },
-      {
-        name: 'Vacation Leave',
-        code: 'VL',
-        created_at: Database.fn.now(),
-        updated_at: Database.fn.now()
-      },
-      {
-        name: 'Emergency Leave',
-        code: 'EL',
-        created_at: Database.fn.now(),
-        updated_at: Database.fn.now()
-      }
-    ])
-    .into('activities')
+    await Database
+      .insert([
+        {
+          name: 'Sick Leave',
+          code: 'SL',
+          created_at: Database.fn.now(),
+          updated_at: Database.fn.now()
+        },
+        {
+          name: 'Vacation Leave',
+          code: 'VL',
+          created_at: Database.fn.now(),
+          updated_at: Database.fn.now()
+        },
+        {
+          name: 'Emergency Leave',
+          code: 'EL',
+          created_at: Database.fn.now(),
+          updated_at: Database.fn.now()
+        },
+        {
+          name: 'Work From Home',
+          code: 'WFH',
+          created_at: Database.fn.now(),
+          updated_at: Database.fn.now()
+        }
+      ])
+      .into('activities')
   }
 }
 

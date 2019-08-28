@@ -1,17 +1,10 @@
 'use strict'
 
 const UserApp = use('App/Models/UserApp')
+const UserRepo = use('App/Repositories/User')
 
 class UserAppRepository {
-  static get inject () {
-    return ['App/Repositories/User']
-  }
-
-  constructor (User) {
-    this.User = User
-  }
-
-  async show(app_type, app_key) {
+  async show (app_type, app_key) {
     const userApp = await UserApp.query().where({
       app_type: app_type,
       app_key: app_key
@@ -20,10 +13,11 @@ class UserAppRepository {
   }
 
   async create (app_type, app_key, display_name, email_address, user_name) {
-    let user = await this.User.show(display_name)
+    const User = new UserRepo
+    let user = await User.show(email_address)
 
     if (!user) {
-      user = await this.User.create(display_name, email_address)
+      user = await User.create(display_name, email_address)
     }
 
     if (!user) {

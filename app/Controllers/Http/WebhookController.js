@@ -1,5 +1,7 @@
 'use strict'
 
+const Logger = use('Logger')
+
 const SLACK_APP_TYPE_ID = 1
 const SATURDAY_INDEX = 6
 const SUNDAY_INDEX = 0
@@ -25,8 +27,11 @@ class WebhookController {
 
     const data = request.post()
 
-    // initial checking of totga command
+    // initial validation of totga command
     if (!data.text) {
+      Logger
+        .transport('info')
+        .info(`Triggered invalid /totga command [${data.user_id}].`)
       return this.response(
         'That\'s invalid <@'+ data.user_id + '>',
         'Type `/totga <SL/VL/EL/WFH> <count>`'
@@ -42,11 +47,17 @@ class WebhookController {
       
       // check if user exists
       if (userApp) {
+        Logger
+          .transport('info')
+          .info(`Registers again [${data.user_id}].`)
         return this.response('All good. You\'re already done.')
       }
 
       // check name parameter
       if (!body[1]) {
+        Logger
+          .transport('info')
+          .info(`Registers w/o name [${data.user_id}].`)
         return this.response(
           'Add a display name.',
           'Type `/totga register <display name> <email address>`'
@@ -55,6 +66,9 @@ class WebhookController {
 
       // check email address parameter
       if (!body[2]) {
+        Logger
+          .transport('info')
+          .info(`Registers w/o email address [${data.user_id}].`)
         return this.response(
           'Add an email address.',
           'Type `/totga register <display name> <email address>`'
@@ -70,11 +84,25 @@ class WebhookController {
         data.user_name
       )
 
-      return result ? this.response('Registered!') : this.response('Can you try that again?')
+      if (!result) {
+        Logger
+          .transport('error')
+          .error(`Failed registration [${data.user_id}].`)
+        return this.response('Can you try that again?')
+      }
+
+      Logger
+        .transport('info')
+        .info(`Successfully registers [${data.user_id}].`)
+      return this.response('Registered!')
+
     } 
 
     // check if user is not yet registered and not registering
     if (!userApp && body[0] !== 'register') {
+      Logger
+        .transport('info')
+        .info(`Triggered invalid /totga command [${data.user_id}].`)
       return this.response(
         'Let\'s register your account.',
         'Type `/totga register <display name> <email address>`'
@@ -85,6 +113,9 @@ class WebhookController {
 
     // check if totga activity is valid
     if (!activity) {
+      Logger
+        .transport('info')
+        .info(`Triggered invalid /totga command [${data.user_id}].`)
       return this.response(
         'That\'s invalid <@'+ data.user_id + '>',
         'Type `/totga <SL/VL/EL/WFH> <count>`'
@@ -96,6 +127,9 @@ class WebhookController {
 
     // check if it's not a weekend
     if (!this.isActivityDateValid()) {
+      Logger
+        .transport('info')
+        .info(`Triggered command on a weekend [${data.user_id}].`)
       return this.response('Oh, but it\'s a weekend?')
     }
 
@@ -107,15 +141,23 @@ class WebhookController {
       new Date()
     )
 
-    return result ?
-      this.response(
-        'We got it, your update is now shown in the monitor.',
-        'Stay safe bud!'
-      ) :
-      this.response(
+    if (!result) {
+      Logger
+        .transport('error')
+        .error(`Failed activity update [${data.user_id}].`)
+      return this.response(
         'Oh, something went wrong. Can you try again?',
         'Or if it really won\'t work, contact TOTGA team.'
       )
+    }
+
+    Logger
+      .transport('info')
+      .info(`Successfully updates activity [${data.user_id}].`)
+    return this.response(
+      'We got it, your update is now shown in the monitor.',
+      'Stay safe bud!'
+    )
   }
 
   response (text, attachment) {

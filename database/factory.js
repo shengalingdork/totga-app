@@ -13,21 +13,3 @@
 
 /** @type {import('@adonisjs/lucid/src/Factory')} */
 const Factory = use('Factory')
-
-Factory.blueprint('App/Models/User', (faker) => {
-  return {
-    name: faker.name(),
-    email_address: faker.email()
-  }
-})
-
-Factory.blueprint('App/Models/UserApp', (faker) => {
-  return {
-    user_id: async () => {
-      return (await Factory.model('App/Models/User').create()).id
-    },
-    app_type: faker.integer({ min:1, max:3 }),
-    user_name: faker.twitter(),
-    app_key: faker.fbid()
-  }
-})
