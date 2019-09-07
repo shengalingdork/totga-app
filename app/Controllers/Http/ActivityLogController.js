@@ -1,35 +1,69 @@
 'use strict'
 
+const Database = use('Database')
 const UserAppActivity = use('App/Models/UserAppActivity')
 const ActivityLogNotFoundException = use('App/Exceptions/ActivityLogNotFoundException')
 
 class ActivityLogController {
+    async index ({ params, response }) {
+        const date = new Date().toISOString().slice(0, 10)
+        const startDate = date + ' 00:00:00'
+        const endDate = date + ' 23:59:59'
+
+        const userAppActivities = await UserAppActivity.query()
+            .where(function() {
+                this.where('start_at', startDate).orWhere('start_at', '<', startDate)
+            })
+            .andWhere(function() {
+                this.where('end_at', endDate).orWhere('end_at', '>', endDate)
+            })
+            .fetch()
+
+        let userAppActivity, userApp, activity, user, appType, activityLog
+        let activityLogs = []
+
+        for (let i in userAppActivities.rows) {
+            userAppActivity = userAppActivities.rows[i]
+            userApp = await userAppActivity.userApp().fetch()
+            activity = await userAppActivity.activity().fetch()
+            user = await userApp.user().fetch()
+            appType = await userApp.app().fetch()
+            activityLog = this.render(
+                activity,
+                user,
+                appType,
+                userApp,
+                userAppActivity
+            )
+            activityLogs.push(activityLog)
+        }
+
+        return response.status(200).send({
+            status: 200,
+            count: activityLogs.length,
+            data: activityLogs
+        })
+    }
+
     async show ({ params, response }) {
         const id = params.id
         try {
             const userAppActivity = await UserAppActivity.findOrFail(id)
-            const activity = await userAppActivity.activity().fetch()
             const userApp = await userAppActivity.userApp().fetch()
+            const activity = await userAppActivity.activity().fetch()
             const user = await userApp.user().fetch()
             const appType = await userApp.app().fetch()
 
-            const activityLog = {
-                activity: activity.code,
-                user: {
-                    name: user.name,
-                    email_address: user.email_address
-                },
-                app: {
-                    type: appType.name,
-                    key: userApp.app_key
-                },
-                startAt: userAppActivity.start_at,
-                endAt: userAppActivity.end_at,
-                count: userAppActivity.count
-            }
+            const activityLog = this.render(
+                activity,
+                user,
+                appType,
+                userApp,
+                userAppActivity
+            )
 
             return response.status(200).send({
-                status:200,
+                status: 200,
                 data: activityLog
             })
         } catch (e) {
@@ -60,17 +94,42 @@ class ActivityLogController {
         }
     }
 
+    render (
+        activity,
+        user,
+        appType,
+        userApp,
+        userAppActivity
+    ) {
+        return {
+            id: userAppActivity.id,
+            activity: activity.code,
+            user: {
+                id: user.id,
+                name: user.name,
+                email_address: user.email_address,
+                app: {
+                    type: appType.name,
+                    key: userApp.app_key
+                },
+            },
+            startAt: userAppActivity.start_at,
+            endAt: userAppActivity.end_at,
+            count: userAppActivity.count
+        }
+    }
+
     getStartDate (startAt) {
-        let startAtCast = new Date(startAt)
-        startAtCast.setHours(0,0,0,0)
-        return startAtCast
+        let date = new Date(startAt)
+        date.setHours(0,0,0,0)
+        return date
     }
 
     getEndDate (startAt, count) {
-        let endAt = new Date(startAt)
-        endAt.setDate(parseInt(endAt.getDate()) + parseInt(count - 1))
-        endAt.setHours(23,59,59,999)
-        return endAt
+        let date = new Date(startAt)
+        date.setDate(parseInt(date.getDate()) + parseInt(count - 1))
+        date.setHours(23,59,59,999)
+        return date
     }
 }
 

@@ -20,8 +20,7 @@ Route
   .post('webhook/slack', 'WebhookController.slack')
   .middleware(['slackAuth'])
 
-Route.get('webhook/getAccessToken', 'TeamCalendarController.getAccessToken')
-Route.get('storeUserActivities', 'TeamCalendarController.storeUserActivities')
-
-Route.get('activity_log/:id', 'ActivityLogController.show').formats(['json'])
-Route.post('activity_log', 'ActivityLogController.create')
+Route.group(() => {
+  Route.get('activity_log', 'ActivityLogController.index')
+  Route.get('activity_log/:id', 'ActivityLogController.show')
+}).formats(['json'])

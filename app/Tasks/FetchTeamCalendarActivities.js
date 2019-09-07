@@ -3,11 +3,12 @@
 const Task = use('Task')
 const Env = use('Env')
 const Logger = use('Logger')
+const axios = require('axios')
+const { URLSearchParams } = require('url')
+
 const ActivityRepo = use('App/Repositories/Activity')
 const UserAppRepo = use('App/Repositories/UserApp')
 const UserAppActivityRepo = use('App/Repositories/UserAppActivity')
-const axios = require('axios')
-const { URLSearchParams } = require('url')
 
 const MS_APP_TYPE_ID = 3
 
@@ -23,7 +24,7 @@ class FetchTeamCalendarActivities extends Task {
 
     const today = new Date()
     const startDay = today.toISOString().slice(0,10)
-    const endDay  = new Date(today.getTime()+1000*60*60*24)
+    const endDay = new Date(today.getTime()+1000*60*60*24)
       .toISOString()
       .slice(0,10)
 
