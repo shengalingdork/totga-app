@@ -10,13 +10,24 @@ class ActivityLogController {
         const startDate = date + ' 00:00:00'
         const endDate = date + ' 23:59:59'
 
-        const userAppActivities = await UserAppActivity.query()
+        let ids = await Database
+            .select('id')
+            .from('user_app_activities')
             .where(function() {
                 this.where('start_at', startDate).orWhere('start_at', '<', startDate)
             })
             .andWhere(function() {
                 this.where('end_at', endDate).orWhere('end_at', '>', endDate)
             })
+            .max('id as id')
+            .groupBy('user_app_id')
+
+        ids = ids.map((id) => {
+                return id.id
+            })
+
+        const userAppActivities = await UserAppActivity.query()
+            .whereIn('id', ids)
             .fetch()
 
         let userAppActivity, userApp, activity, user, appType, activityLog
