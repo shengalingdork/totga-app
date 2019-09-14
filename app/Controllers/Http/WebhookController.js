@@ -1,6 +1,7 @@
 'use strict'
 
 const Logger = use('Logger')
+const Event = use('Event')
 
 const SLACK_APP_TYPE_ID = 1
 const SATURDAY_INDEX = 6
@@ -151,6 +152,9 @@ class WebhookController {
       )
     }
 
+    // update monitor display
+    this.updateTracker(result)
+
     Logger
       .transport('info')
       .info(`Successfully updates activity [${data.user_id}].`)
@@ -177,6 +181,10 @@ class WebhookController {
     return today !== SATURDAY_INDEX && today !== SUNDAY_INDEX
   }
 
+  async updateTracker (activityLog) {
+    const data = await this.UserAppActivity.fetch([activityLog.id])
+    Event.emit('new::activity', data)
+  }
 }
 
 module.exports = WebhookController

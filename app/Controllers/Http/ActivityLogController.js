@@ -5,55 +5,52 @@ const UserAppActivity = use('App/Models/UserAppActivity')
 const ActivityLogNotFoundException = use('App/Exceptions/ActivityLogNotFoundException')
 
 class ActivityLogController {
-    async index ({ params, response }) {
+    static get inject () {
+        return [
+          'App/Repositories/UserAppActivity'
+        ]
+      }
+
+    constructor (UserAppActivity) {
+        this.UserAppActivity = UserAppActivity
+    }
+
+    async index ({ request, response, view }) {
         const date = new Date().toISOString().slice(0, 10)
         const startDate = date + ' 00:00:00'
         const endDate = date + ' 23:59:59'
 
         let ids = await Database
-            .select('id')
+            .select('user_app_activities.id')
             .from('user_app_activities')
+            .rightJoin(
+                'user_apps',
+                'user_app_activities.user_app_id',
+                'user_apps.user_id')
             .where(function() {
                 this.where('start_at', startDate).orWhere('start_at', '<', startDate)
             })
             .andWhere(function() {
                 this.where('end_at', endDate).orWhere('end_at', '>', endDate)
             })
-            .max('id as id')
-            .groupBy('user_app_id')
+            .max('user_app_activities.id as id')
+            .groupByRaw('user_apps.user_id')
 
         ids = ids.map((id) => {
                 return id.id
             })
 
-        const userAppActivities = await UserAppActivity.query()
-            .whereIn('id', ids)
-            .fetch()
+        const activityLogs = await this.UserAppActivity.fetch(ids)
 
-        let userAppActivity, userApp, activity, user, appType, activityLog
-        let activityLogs = []
-
-        for (let i in userAppActivities.rows) {
-            userAppActivity = userAppActivities.rows[i]
-            userApp = await userAppActivity.userApp().fetch()
-            activity = await userAppActivity.activity().fetch()
-            user = await userApp.user().fetch()
-            appType = await userApp.app().fetch()
-            activityLog = this.render(
-                activity,
-                user,
-                appType,
-                userApp,
-                userAppActivity
-            )
-            activityLogs.push(activityLog)
+        if (request.format() === 'json') {
+            return response.status(200).send({
+                status: 200,
+                count: activityLogs.length,
+                data: activityLogs
+            })
         }
 
-        return response.status(200).send({
-            status: 200,
-            count: activityLogs.length,
-            data: activityLogs
-        })
+        return view.render('main', { activityLogs })
     }
 
     async show ({ params, response }) {

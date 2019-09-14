@@ -22,6 +22,7 @@ const providers = [
   '@adonisjs/session/providers/SessionProvider',
   '@adonisjs/auth/providers/AuthProvider',
   'adonis-scheduler/providers/SchedulerProvider',
+  '@adonisjs/websocket/providers/WsProvider',
   path.join(__dirname, '..', 'providers', 'CustomFileLoggerProvider')
 ]
 

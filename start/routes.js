@@ -17,6 +17,10 @@
 const Route = use('Route')
 
 Route
+  .get('/','ActivityLogController.index')
+  .formats(['json'])
+
+Route
   .post('webhook/slack', 'WebhookController.slack')
   .middleware(['slackAuth'])
 
