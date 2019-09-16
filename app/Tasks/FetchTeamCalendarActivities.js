@@ -14,7 +14,7 @@ const MS_APP_TYPE_ID = 3
 
 class FetchTeamCalendarActivities extends Task {
   static get schedule () {
-    return '0 1 * * *'
+    return '0 9 * * *'
   }
 
   async handle () {
@@ -73,7 +73,9 @@ class FetchTeamCalendarActivities extends Task {
         continue
       }
 
-      emailAddress = userActivity.attendees[0].emailAddress.address
+      emailAddress = userActivity.attendees[1] ?
+                      userActivity.attendees[1].emailAddress.address :
+                      userActivity.attendees[0].emailAddress.address
 
       // fetch user details from microsoft
       user = await this.getUserByEmailAddress(emailAddress)

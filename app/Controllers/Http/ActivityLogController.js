@@ -16,14 +16,16 @@ class ActivityLogController {
     }
 
     async index ({ request, response, view }) {
-        const date = new Date().toISOString().slice(0, 10)
-        const startDate = date + ' 00:00:00'
-        const endDate = date + ' 23:59:59'
+        let date = new Date()
+        date.setDate(date.getDate() + 1)
+        const today = date.toISOString().slice(0, 10)
+        const startDate = today + ' 00:00:00'
+        const endDate = today + ' 23:59:59'
 
         let ids = await Database
             .select('user_app_activities.id')
             .from('user_app_activities')
-            .rightJoin(
+            .leftJoin(
                 'user_apps',
                 'user_app_activities.user_app_id',
                 'user_apps.user_id')
@@ -33,7 +35,7 @@ class ActivityLogController {
             .andWhere(function() {
                 this.where('end_at', endDate).orWhere('end_at', '>', endDate)
             })
-            .max('user_app_activities.id as id')
+            .max('user_app_activities.id')
             .groupByRaw('user_apps.user_id')
 
         ids = ids.map((id) => {
