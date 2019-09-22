@@ -4,8 +4,6 @@ const Logger = use('Logger')
 const Event = use('Event')
 
 const SLACK_APP_TYPE_ID = 1
-const SATURDAY_INDEX = 6
-const SUNDAY_INDEX = 0
 
 class WebhookController {
   static get inject () {
@@ -13,19 +11,20 @@ class WebhookController {
       'App/Repositories/Activity',
       'App/Repositories/User',
       'App/Repositories/UserApp',
-      'App/Repositories/UserAppActivity'
+      'App/Repositories/UserAppActivity',
+      'App/Repositories/CustomDate'
     ]
   }
 
-  constructor (Activity, User, UserApp, UserAppActivity) {
+  constructor (Activity, User, UserApp, UserAppActivity, CustomDate) {
     this.Activity = Activity
     this.User = User
     this.UserApp = UserApp
     this.UserAppActivity = UserAppActivity
+    this.CustomDate = CustomDate
   }
 
   async slack ({ request }) {
-
     const data = request.post()
 
     // initial validation of totga command
@@ -124,10 +123,12 @@ class WebhookController {
     }
 
     // set 1 as default activity count
-    const count = body[1] ? body[1] : 1
+    const count = body[1] ? parseInt(body[1]) : 1
+
+    const today = this.CustomDate.getDatetimeNow()
 
     // check if it's not a weekend
-    if (!this.isActivityDateValid()) {
+    if (!this.CustomDate.isActivityDateValid(today.date)) {
       Logger
         .transport('info')
         .info(`Triggered command on a weekend [${data.user_id}].`)
@@ -139,7 +140,8 @@ class WebhookController {
       userApp.id,
       activity.id,
       count,
-      new Date()
+      this.CustomDate.getStartDate(today.date),
+      this.CustomDate.getEndDate(today.date, count)
     )
 
     if (!result) {
@@ -174,11 +176,6 @@ class WebhookController {
       }]
     }
     return response
-  }
-
-  isActivityDateValid() {
-    let today = new Date().getDay()
-    return today !== SATURDAY_INDEX && today !== SUNDAY_INDEX
   }
 
   async updateTracker (activityLog) {

@@ -2,23 +2,65 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
   <title>TOTGA</title>
-  {{ style('style') }}
+  <link rel="icon" href="./images/icon.png">
+  <link href="https://fonts.googleapis.com/css?family=Fredoka+One&display=swap" rel="stylesheet" />
+  {{ style('/css/style') }}
 </head>
 <body>
-  <div>
-    <p> TOTGA </p>
-    <ul>
-      @each(activityLog in activityLogs)
-        <li id="{{ activityLog.user.id }}">
-          {{ activityLog.activity }} - {{ activityLog.user.name }}
-        </li>
-      @endeach
-    </ul>
+  <div class="content">
+    <div class="border">
+      <div class="header">
+        <img id="logo-img" src="images/logo.png" />
+      </div>
+      <div class="body">
+        @each(activityLog in activityLogs)
+          @if($loop.isOdd)
+            <div id="{{ $loop.index + 1 }}" class="card user-{{ activityLog.user.id }}">
+          @else
+            <div id="{{ $loop.index + 1 }}" class="card reverse user-{{ activityLog.user.id }}">
+          @endif
+            <div class="card-item">
+              @if($loop.isOdd)
+                <img
+                  src="./images/{{ lowerCase(activityLog.activity) }}_icon.png"
+                  class="card-img-left" />
+              @else
+                <img
+                src="./images/{{ lowerCase(activityLog.activity) }}_icon.png"
+                class="card-img-right" />
+              @endif
+            </div>
+            @if($loop.isOdd)
+              <div class="card-item card-left">
+                <div class="card-border-left {{ lowerCase(activityLog.activity) }}">
+            @else
+              <div class="card-item card-right">
+                <div class="card-border-right {{ lowerCase(activityLog.activity) }}">
+            @endif
+                  <p class="card-content">{{ lowerCase(activityLog.user.name) }}</p>
+                </div>
+              </div>
+            </div>
+        @endeach
+      </div>
+      <div class="calendar">
+        <img id="calendar-img" src="images/date_container.png" />
+        <div class="calendar-container month">
+          <p class="calendar-label month">{{ today.month }}<p>
+        </div>
+        <div class="calendar-container day">
+          <p class="calendar-label day">{{ today.day }}</p>
+        </div>
+      </div>
+    </div>
   </div>
   {{ script('https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/6.26.0/polyfill.min.js') }}
   {{ script('https://unpkg.com/@adonisjs/websocket-client@1.0.9/dist/Ws.browser.js') }}
   {{ script('https://unpkg.com/jquery@3.3.1/dist/jquery.js') }}
   {{ script('update.js') }}
 </body>
+<div class="footer">&copy; Global Education {{ today.year }}</div>
 </html>

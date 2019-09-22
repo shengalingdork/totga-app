@@ -21,10 +21,9 @@ Route
   .formats(['json'])
 
 Route
+  .get('/:id', 'ActivityLogController.show')
+  .formats(['json'], true)
+
+Route
   .post('webhook/slack', 'WebhookController.slack')
   .middleware(['slackAuth'])
-
-Route.group(() => {
-  Route.get('activity_log', 'ActivityLogController.index')
-  Route.get('activity_log/:id', 'ActivityLogController.show')
-}).formats(['json'])

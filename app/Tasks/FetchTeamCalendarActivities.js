@@ -9,30 +9,28 @@ const { URLSearchParams } = require('url')
 const ActivityRepo = use('App/Repositories/Activity')
 const UserAppRepo = use('App/Repositories/UserApp')
 const UserAppActivityRepo = use('App/Repositories/UserAppActivity')
+const CustomDateRepo = use('App/Repositories/CustomDate')
 
 const MS_APP_TYPE_ID = 3
+const COUNT = 1
 
 class FetchTeamCalendarActivities extends Task {
   static get schedule () {
-    return '0 9 * * *'
+    return '0 8 * * *'
   }
 
   async handle () {
     const UserApp = new UserAppRepo
     const Activity = new ActivityRepo
     const UserAppActivity = new UserAppActivityRepo
+    const CustomDate = new CustomDateRepo
 
-    const today = new Date()
-    const startDay = today.toISOString().slice(0,10)
-    const endDay = new Date(today.getTime()+1000*60*60*24)
-      .toISOString()
-      .slice(0,10)
+    const today = CustomDate.getDatetimeNow()
+    const startDate = CustomDate.getStartDateUTC(today.date)
+    const endDate = CustomDate.getEndDateUTC(today.date)
 
     // fetch all user activities for the day
-    const userActivities = await this.getUserActivities(
-      `${startDay}T17:00:00Z`,
-      `${endDay}T16:00:00Z`
-    )
+    const userActivities = await this.getUserActivities(startDate, endDate)
 
     // check if zero activities
     if (!userActivities.length) {
@@ -74,8 +72,8 @@ class FetchTeamCalendarActivities extends Task {
       }
 
       emailAddress = userActivity.attendees[1] ?
-                      userActivity.attendees[1].emailAddress.address :
-                      userActivity.attendees[0].emailAddress.address
+        userActivity.attendees[1].emailAddress.address :
+        userActivity.attendees[0].emailAddress.address
 
       // fetch user details from microsoft
       user = await this.getUserByEmailAddress(emailAddress)
@@ -111,8 +109,9 @@ class FetchTeamCalendarActivities extends Task {
       userAppActivity = await UserAppActivity.create(
         userApp.id,
         activity.id,
-        1,
-        new Date()
+        COUNT,
+        CustomDate.getStartDate(today.date),
+        CustomDate.getEndDate(today.date, COUNT)
       )
 
       if (!userAppActivity) {

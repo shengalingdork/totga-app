@@ -12,7 +12,8 @@
     "totga-app",
     "totga",
     "out-of-office",
-    "tracker"
+    "tracker",
+    "the out-of-office tracker generator app"
   ],
   "author": "Shane Camus",
   "license": "UNLICENSED",
@@ -33,6 +34,7 @@
     "axios": "^0.19.0",
     "crypto": "^1.0.1",
     "lodash": "^4.17.15",
+    "moment-business-days": "^1.1.3",
     "mysql": "^2.17.1",
     "qs": "^6.7.0",
     "standard": "^13.1.0"
