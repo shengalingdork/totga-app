@@ -10,6 +10,7 @@ class CustomDateRepository {
       date: now.tz('Asia/Manila').format('YYYY-MM-DDTHH:mm:ss'),
       month: now.format('MMM').toUpperCase(),
       day: now.format('DD'),
+      year: now.format('YYYY'),
       dayOfWeek: now.format('d')
     }
   }
