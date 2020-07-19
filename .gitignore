@@ -18,3 +18,6 @@ database/development.sqlite
 
 # iOS file
 .DS_Store
+
+# references
+TOTGA Schema ERD.png
