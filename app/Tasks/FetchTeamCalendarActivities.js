@@ -16,7 +16,7 @@ const COUNT = 1
 
 class FetchTeamCalendarActivities extends Task {
   static get schedule () {
-    return '0 8 * * *'
+    return '0 1 * * *'
   }
 
   async handle () {
