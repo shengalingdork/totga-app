@@ -34,12 +34,10 @@ class ActivityLogController {
             .andWhere(function() {
                 this.where('end_at', endDate).orWhere('end_at', '>', endDate)
             })
-            .max('user_app_activities.id')
+            .max('user_app_activities.id as max_id')
             .groupByRaw('user_apps.user_id')
 
-        ids = ids.map((id) => {
-                return id.id
-            })
+        ids = ids.map(id => id.max_id)
 
         const activityLogs = await this.UserAppActivity.fetch(ids)
 
