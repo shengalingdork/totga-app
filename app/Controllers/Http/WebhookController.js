@@ -44,9 +44,8 @@ class WebhookController {
 
     // check if for registration
     if (body[0] === 'register') {
-      
       // check if user exists
-      if (userApp) {
+      if (userApp) { // U4D6W530V
         Logger
           .transport('info')
           .info(`Registers again [${data.user_id}].`)
@@ -104,9 +103,9 @@ class WebhookController {
       Logger
         .transport('info')
         .info(`Successfully registers [${data.user_id}].`)
-      return this.response('Registered!')
 
-    } 
+      return this.response('Registered!')
+    }
 
     // check if user is not yet registered and not registering
     if (!userApp && body[0] !== 'register') {
@@ -132,7 +131,7 @@ class WebhookController {
         )
     }
 
-    if (body[1] && parseInt(body[1]) < 1) {
+    if (body[1] && parseFloat(body[1]) < 1) {
       Logger
         .transport('info')
         .info(`Triggered invalid /totga command [${data.user_id}].`)
@@ -143,7 +142,7 @@ class WebhookController {
     }
 
     // set 1 as default activity count
-    const count = body[1] ? parseInt(body[1]) : 1
+    const count = body[1] ? Math.round(parseFloat(body[1])) : 1
 
     const today = this.CustomDate.getDatetimeNow()
 
