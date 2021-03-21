@@ -33,7 +33,7 @@ class WebhookController {
         .transport('info')
         .info(`Triggered invalid /totga command [${data.user_id}].`)
       return this.response(
-        'That\'s invalid <@'+ data.user_id + '>',
+        `That\'s invalid <@${data.user_id}>`,
         'Type `/totga <SL/VL/EL/WFH> <count>`'
         )
     }
@@ -71,6 +71,16 @@ class WebhookController {
           .info(`Registers w/o email address [${data.user_id}].`)
         return this.response(
           'Add an email address.',
+          'Type `/totga register <display name> <email address>`'
+        )
+      }
+
+      if (body[2].search('@cambridge.org') < 0) {
+        Logger
+          .transport('info')
+          .info(`Registers w/ invalid email address [${data.user_id}].`)
+        return this.response(
+          'Please enter a valid Cambridge email address.',
           'Type `/totga register <display name> <email address>`'
         )
       }
@@ -117,7 +127,7 @@ class WebhookController {
         .transport('info')
         .info(`Triggered invalid /totga command [${data.user_id}].`)
       return this.response(
-        'That\'s invalid <@'+ data.user_id + '>',
+        `That\'s invalid <@${data.user_id}>`,
         'Type `/totga <SL/VL/EL/WFH> <count>`'
         )
     }
@@ -127,7 +137,7 @@ class WebhookController {
         .transport('info')
         .info(`Triggered invalid /totga command [${data.user_id}].`)
       return this.response(
-        'That\'s invalid <@'+ data.user_id + '>. Count should always be 1 or more',
+        `That\'s invalid <@${data.user_id}>. Count should always be 1 or more.`,
         'Type `/totga <SL/VL/EL/WFH> <count>.`'
         )
     }
