@@ -122,6 +122,16 @@ class WebhookController {
         )
     }
 
+    if (body[1] && parseInt(body[1]) < 1) {
+      Logger
+        .transport('info')
+        .info(`Triggered invalid /totga command [${data.user_id}].`)
+      return this.response(
+        'That\'s invalid <@'+ data.user_id + '>. Count should always be 1 or more',
+        'Type `/totga <SL/VL/EL/WFH> <count>.`'
+        )
+    }
+
     // set 1 as default activity count
     const count = body[1] ? parseInt(body[1]) : 1
 
