@@ -33,7 +33,7 @@ class WebhookController {
         .transport('info')
         .info(`Triggered invalid /totga command [${data.user_id}].`)
       return this.response(
-        'That\'s invalid <@'+ data.user_id + '>',
+        `That\'s invalid <@${data.user_id}>`,
         'Type `/totga <SL/VL/EL/WFH> <count>`'
         )
     }
@@ -44,7 +44,6 @@ class WebhookController {
 
     // check if for registration
     if (body[0] === 'register') {
-      
       // check if user exists
       if (userApp) {
         Logger
@@ -75,6 +74,16 @@ class WebhookController {
         )
       }
 
+      if (body[2].search('@cambridge.org') < 0) {
+        Logger
+          .transport('info')
+          .info(`Registers w/ invalid email address [${data.user_id}].`)
+        return this.response(
+          'Please enter a valid Cambridge email address.',
+          'Type `/totga register <display name> <email address>`'
+        )
+      }
+
       // create user
       const result = await this.UserApp.create(
         SLACK_APP_TYPE_ID,
@@ -94,9 +103,9 @@ class WebhookController {
       Logger
         .transport('info')
         .info(`Successfully registers [${data.user_id}].`)
-      return this.response('Registered!')
 
-    } 
+      return this.response('Registered!')
+    }
 
     // check if user is not yet registered and not registering
     if (!userApp && body[0] !== 'register') {
@@ -117,13 +126,23 @@ class WebhookController {
         .transport('info')
         .info(`Triggered invalid /totga command [${data.user_id}].`)
       return this.response(
-        'That\'s invalid <@'+ data.user_id + '>',
+        `That\'s invalid <@${data.user_id}>`,
         'Type `/totga <SL/VL/EL/WFH> <count>`'
         )
     }
 
+    if (body[1] && parseFloat(body[1]) < 1) {
+      Logger
+        .transport('info')
+        .info(`Triggered invalid /totga command [${data.user_id}].`)
+      return this.response(
+        `That\'s invalid <@${data.user_id}>. Count should always be 1 or more.`,
+        'Type `/totga <SL/VL/EL/WFH> <count>.`'
+        )
+    }
+
     // set 1 as default activity count
-    const count = body[1] ? parseInt(body[1]) : 1
+    const count = body[1] ? Math.round(parseFloat(body[1])) : 1
 
     const today = this.CustomDate.getDatetimeNow()
 
