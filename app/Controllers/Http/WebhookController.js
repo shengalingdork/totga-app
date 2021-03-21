@@ -45,7 +45,7 @@ class WebhookController {
     // check if for registration
     if (body[0] === 'register') {
       // check if user exists
-      if (userApp) { // U4D6W530V
+      if (userApp) {
         Logger
           .transport('info')
           .info(`Registers again [${data.user_id}].`)
