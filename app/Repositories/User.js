@@ -3,7 +3,15 @@
 const User = use('App/Models/User')
 
 class UserRepository {
-  async show (email_address) {
+  async show (id) {
+    const user = await User
+      .query()
+      .where('id', id)
+      .first()
+    return !user ? false : user.toJSON()
+  }
+
+  async getByEmailAddress (email_address) {
     const user = await User
       .query()
       .where('email_address', email_address)

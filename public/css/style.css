@@ -2,20 +2,21 @@
   margin: auto;
   font-family: 'Fredoka One', cursive;
   padding: 10px;
+  min-height: 90vh;
  }
  .header {
   margin-top: -12%;
  }
  .footer {
+   display: flex;
+   align-items: center;
+   justify-content: center;
    text-align: center;
    font-family: Arial, Helvetica, sans-serif;
    font-size: 12px;
    color: #dadada;
-   position: absolute;
-   bottom: 0;
    height: 30px;
    width: 100%;
-   left: 0px;
  }
  #logo-img {
   width: 50%;
@@ -42,19 +43,19 @@
  }
 
  /* ACTIVITY COLORS */
- .vl {
+ .vl, .vl-e, .vl-l {
   color: #1893f8;
   border-color: #1893f8;
  }
- .wfh {
+ .wfh, .wfh-e, .wfh-l {
   color: #a6a6a6;
   border-color: #a6a6a6;
  }
- .sl {
+ .sl, .sl-e, .sl-l {
   color: #f79630;
   border-color: #f79630;
  }
- .el {
+ .el, .el-e, .el-l {
   color: #c4391d;
   border-color: #c4391d;
  }

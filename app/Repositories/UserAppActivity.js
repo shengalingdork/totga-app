@@ -3,7 +3,7 @@
 const UserAppActivity = use('App/Models/UserAppActivity')
 
 class UserAppActivityRepository {
-  async fetch (ids) {
+  async fetch(ids) {
     const userAppActivities = await UserAppActivity.query()
       .whereIn('id', ids)
       .fetch()
@@ -30,7 +30,7 @@ class UserAppActivityRepository {
     return activityLogs
   }
 
-  async create (user_app_id, activity_id, count, start_at, end_at) {
+  async create(user_app_id, activity_id, count, start_at, end_at) {
     try {
       const userAppActivity = await UserAppActivity.create({
         user_app_id: user_app_id,
@@ -42,6 +42,40 @@ class UserAppActivityRepository {
       return userAppActivity.toJSON()
     } catch (e) {
       console.log(e)
+      return false
+    }
+  }
+
+  async getByUserId(userAppId, {
+    startDate = null,
+    endDate = null
+  }) {
+    const query = UserAppActivity.query()
+      .where('user_app_id', userAppId)
+      .andWhere('is_deleted', 0)
+
+    if (startDate) {
+      query.andWhere(function () {
+        this.where('start_at', startDate).orWhere('start_at', '<', startDate)
+      })
+    }
+
+    if (endDate) {
+      query.andWhere(function () {
+        this.where('end_at', endDate).orWhere('end_at', '>', endDate)
+      })
+    }
+
+    return await query.orderBy('id', 'desc').first()
+  }
+
+  async softDelete(id) {
+    try {
+      const userAppActivity = await UserAppActivity.find(id)
+      userAppActivity.is_deleted = 1
+      await userAppActivity.save()
+      return true
+    } catch (e) {
       return false
     }
   }
