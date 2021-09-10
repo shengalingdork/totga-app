@@ -3,8 +3,7 @@
 const Task = use('Task')
 const Env = use('Env')
 const Logger = use('Logger')
-const axios = require('axios')
-const { URLSearchParams } = require('url')
+const Fetch = use('Fetch')
 
 const ActivityRepo = use('App/Repositories/Activity')
 const UserAppRepo = use('App/Repositories/UserApp')
@@ -125,34 +124,6 @@ class FetchTeamCalendarActivities extends Task {
     }
   }
 
-  async fetch (method, url, headers=null, data=null) {
-    var params = {
-      method: method,
-      url: url
-    }
-
-    if (headers) {
-      params['headers'] = headers
-    }
-
-    if (data) {
-      params['data'] = new URLSearchParams(data).toString()
-    }
-
-    try {
-      const result = await axios(params)
-      return {
-        success: true,
-        data: result.data
-      }
-    } catch (error) {
-      return {
-        success: false,
-        data: error.response
-      }
-    }
-  }
-
   async getAccessToken () {
     const url = Env.get('MS_GRAPH_TOKEN_ENDPOINT')
     const header = { 'Content-Type': 'application/x-www-form-urlencoded' }
@@ -160,11 +131,11 @@ class FetchTeamCalendarActivities extends Task {
       grant_type: 'refresh_token',
       client_id: Env.get('MS_GRAPH_CLIENT_ID'),
       refresh_token: Env.get('MS_GRAPH_REFRESH_TOKEN'),
-      redirect_uri: Env.get('NGROK_URI'),
+      redirect_uri: Env.get('BASE_PATH'),
       client_secret: Env.get('MS_GRAPH_CLIENT_SECRET')
     }
 
-    const response = await this.fetch('post', url, header, data)
+    const response = await Fetch.call('post', url, header, data)
   
     return response.success ? response.data.access_token : response
   }
@@ -177,11 +148,12 @@ class FetchTeamCalendarActivities extends Task {
     }).toString()
 
     const url = Env.get('MS_GRAPH_API_URL') + 'users/' +
-    Env.get('TEAM_CALENDAR') + '/calendarview?' + queryParams
+    Env.get('CALENDAR_OWNER') + '/calendars/' + Env.get('CALENDAR_ID') +
+    '/events?' + queryParams
 
-    const header = { 'Authorization': 'Bearer ' + await this.getAccessToken() }
+    const header = { Authorization: 'Bearer ' + await this.getAccessToken() }
   
-    const response = await this.fetch('get', url, header)
+    const response = await Fetch.call('get', url, header)
 
     return response.success ? response.data.value : response
   }
@@ -194,9 +166,9 @@ class FetchTeamCalendarActivities extends Task {
     const url = Env.get('MS_GRAPH_API_URL') + 'users/' + emailAddress +
     '?$' + queryParams
 
-    const header = { 'Authorization': 'Bearer ' + await this.getAccessToken() }
+    const header = { Authorization: 'Bearer ' + await this.getAccessToken() }
 
-    const response = await this.fetch('get', url, header)
+    const response = await Fetch.call('get', url, header)
 
     return response
   }

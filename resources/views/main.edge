@@ -25,20 +25,20 @@
             <div class="card-item">
               @if($loop.isOdd)
                 <img
-                  src="./images/{{ lowerCase(activityLog.activity) }}_icon.png"
+                  src="./images/{{ activityLog.activity.toLowerCase() }}_icon.png"
                   class="card-img-left" />
               @else
                 <img
-                src="./images/{{ lowerCase(activityLog.activity) }}_icon.png"
+                src="./images/{{ activityLog.activity.toLowerCase() }}_icon.png"
                 class="card-img-right" />
               @endif
             </div>
             @if($loop.isOdd)
               <div class="card-item card-left">
-                <div class="card-border-left {{ lowerCase(activityLog.activity) }}">
+                <div class="card-border-left {{ activityLog.activity.toLowerCase() }}">
             @else
               <div class="card-item card-right">
-                <div class="card-border-right {{ lowerCase(activityLog.activity) }}">
+                <div class="card-border-right {{ activityLog.activity.toLowerCase() }}">
             @endif
                   <p class="card-content">{{ lowerCase(activityLog.user.name) }}</p>
                 </div>

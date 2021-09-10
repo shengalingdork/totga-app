@@ -1,121 +1,94 @@
 'use strict'
 
 const Logger = use('Logger')
-const Event = use('Event')
 
 const SLACK_APP_TYPE_ID = 1
 
 class WebhookController {
-  static get inject () {
+  static get inject() {
     return [
+      'App/Repositories/Webhook',
       'App/Repositories/Activity',
       'App/Repositories/User',
-      'App/Repositories/UserApp',
-      'App/Repositories/UserAppActivity',
-      'App/Repositories/CustomDate'
+      'App/Repositories/UserApp'
     ]
   }
 
-  constructor (Activity, User, UserApp, UserAppActivity, CustomDate) {
+  constructor(Webhook, Activity, User, UserApp, CustomDate) {
+    this.Webhook = Webhook
     this.Activity = Activity
     this.User = User
     this.UserApp = UserApp
-    this.UserAppActivity = UserAppActivity
     this.CustomDate = CustomDate
   }
 
-  async slack ({ request }) {
+  async slack({ request }) {
     const data = request.post()
+    const { user_id: userAppKey, user_name: username, text } = data
 
     // initial validation of totga command
-    if (!data.text) {
+    if (!text) {
       Logger
         .transport('info')
-        .info(`Triggered invalid /totga command [${data.user_id}].`)
-      return this.response(
-        `That\'s invalid <@${data.user_id}>`,
-        'Type `/totga <SL/VL/EL/WFH> <count>`'
-        )
-    }
-
-    const body = data.text.split(' ')
-
-    const userApp = await this.UserApp.show(SLACK_APP_TYPE_ID, data.user_id)
-
-    // check if for registration
-    if (body[0] === 'register') {
-      // check if user exists
-      if (userApp) {
-        Logger
-          .transport('info')
-          .info(`Registers again [${data.user_id}].`)
-        return this.response('All good. You\'re already done.')
-      }
-
-      // check name parameter
-      if (!body[1]) {
-        Logger
-          .transport('info')
-          .info(`Registers w/o name [${data.user_id}].`)
-        return this.response(
-          'Add a display name.',
-          'Type `/totga register <display name> <email address>`'
-        )
-      }
-
-      // check email address parameter
-      if (!body[2]) {
-        Logger
-          .transport('info')
-          .info(`Registers w/o email address [${data.user_id}].`)
-        return this.response(
-          'Add an email address.',
-          'Type `/totga register <display name> <email address>`'
-        )
-      }
-
-      if (body[2].search('@cambridge.org') < 0) {
-        Logger
-          .transport('info')
-          .info(`Registers w/ invalid email address [${data.user_id}].`)
-        return this.response(
-          'Please enter a valid Cambridge email address.',
-          'Type `/totga register <display name> <email address>`'
-        )
-      }
-
-      // create user
-      const result = await this.UserApp.create(
-        SLACK_APP_TYPE_ID,
-        data.user_id,
-        body[1],
-        body[2],
-        data.user_name
+        .info(`Triggered invalid /totga command [${userAppKey}].`)
+      return this.Webhook.response(
+        `Not sure what to do?`,
+        'Type `/totga help` for more options'
       )
-
-      if (!result) {
-        Logger
-          .transport('error')
-          .error(`Failed registration [${data.user_id}].`)
-        return this.response('Can you try that again?')
-      }
-
-      Logger
-        .transport('info')
-        .info(`Successfully registers [${data.user_id}].`)
-
-      return this.response('Registered!')
     }
+
+    const body = text.split(' ')
+
+    // help command
+    if (body[0] === 'help') {
+      return this.Webhook.help()
+    }
+
+    // reminder command
+    if (body[0] === 'remind') {
+      return this.Webhook.response(
+        'Somebody filed a leave? Here\'s a gentle nudge to file it on TOTGA to inform your colleagues.',
+        'For more details, check `/totga help`.',
+        true
+      )
+    }
+
+    const userApp = await this.UserApp.show(SLACK_APP_TYPE_ID, userAppKey)
 
     // check if user is not yet registered and not registering
     if (!userApp && body[0] !== 'register') {
       Logger
         .transport('info')
-        .info(`Triggered invalid /totga command [${data.user_id}].`)
-      return this.response(
-        'Let\'s register your account.',
+        .info(`Triggered invalid /totga command [${userAppKey}].`)
+      return this.Webhook.response(
+        'Let\'s register your account first.',
         'Type `/totga register <display name> <email address>`'
       )
+    }
+
+    // check if for registration
+    if (body[0] === 'register') {
+      return this.Webhook.register(userAppKey, username, userApp, body)
+    }
+
+    // check if for deletion
+    if (body[0] === 'delete') {
+      return this.Webhook.delete(userApp)
+    }
+
+    const user = await this.User.show(userApp.user_id)
+
+    // check if line manager
+    if (body[0] === 'file') {
+      const { is_manager } = user
+      if (!is_manager) {
+        return this.Webhook.response(
+          'Sorry, this command is for line managers only!',
+          'Type `/totga <SL/VL/EL/WFH> <count>` or `/totga help` for more options'
+        )
+      }
+
+      return this.Webhook.file(userAppKey, body)
     }
 
     const activity = await this.Activity.show(body[0])
@@ -124,82 +97,25 @@ class WebhookController {
     if (!activity) {
       Logger
         .transport('info')
-        .info(`Triggered invalid /totga command [${data.user_id}].`)
-      return this.response(
-        `That\'s invalid <@${data.user_id}>`,
-        'Type `/totga <SL/VL/EL/WFH> <count>`'
-        )
+        .info(`Triggered invalid /totga command [${userAppKey}].`)
+      return this.Webhook.response(
+        `That\'s invalid <@${userAppKey}>`,
+        'Type `/totga <SL/VL/EL/WFH> <count>` or `/totga help` for more options'
+      )
     }
 
     if (body[1] && parseFloat(body[1]) < 1) {
       Logger
         .transport('info')
-        .info(`Triggered invalid /totga command [${data.user_id}].`)
-      return this.response(
-        `That\'s invalid <@${data.user_id}>. Count should always be 1 or more.`,
+        .info(`Triggered invalid /totga command [${userAppKey}].`)
+      return this.Webhook.response(
+        `That\'s invalid <@${userAppKey}>. Count should always be 1 or more.`,
         'Type `/totga <SL/VL/EL/WFH> <count>.`'
-        )
-    }
-
-    // set 1 as default activity count
-    const count = body[1] ? Math.round(parseFloat(body[1])) : 1
-
-    const today = this.CustomDate.getDatetimeNow()
-
-    // check if it's not a weekend
-    if (!this.CustomDate.isActivityDateValid(today.date)) {
-      Logger
-        .transport('info')
-        .info(`Triggered command on a weekend [${data.user_id}].`)
-      return this.response('Oh, but it\'s a weekend?')
-    }
-
-    // create user activity
-    const result = await this.UserAppActivity.create(
-      userApp.id,
-      activity.id,
-      count,
-      this.CustomDate.getStartDate(today.date),
-      this.CustomDate.getEndDate(today.date, count)
-    )
-
-    if (!result) {
-      Logger
-        .transport('error')
-        .error(`Failed activity update [${data.user_id}].`)
-      return this.response(
-        'Oh, something went wrong. Can you try again?',
-        'Or if it really won\'t work, contact TOTGA team.'
       )
     }
 
-    // update monitor display
-    this.updateTracker(result)
-
-    Logger
-      .transport('info')
-      .info(`Successfully updates activity [${data.user_id}].`)
-    return this.response(
-      'We got it, your update is now shown in the monitor.',
-      'Stay safe bud!'
-    )
-  }
-
-  response (text, attachment) {
-    let response = {}
-    response.response_type = 'ephemeral'
-    response.text = text
-    if (attachment) {
-      response.attachments = [{
-        text: attachment
-      }]
-    }
-    return response
-  }
-
-  async updateTracker (activityLog) {
-    const data = await this.UserAppActivity.fetch([activityLog.id])
-    Event.emit('new::activity', data)
+    // submit activity
+    return this.Webhook.submit(user, userApp, activity, body[1])
   }
 }
 
