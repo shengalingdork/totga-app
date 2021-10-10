@@ -76,7 +76,7 @@ class FetchTeamCalendarActivities extends Task {
 
       // fetch user details from microsoft
       user = await this.getUserByEmailAddress(emailAddress)
-      
+
       // check if user is valid
       if (!user.success) {
         Logger
@@ -84,18 +84,19 @@ class FetchTeamCalendarActivities extends Task {
           .notice(`Invalid attendee [${emailAddress}].`)
         continue
       }
+      user = user.data.value[0]
 
       // check if user is registered
-      userApp = await UserApp.show(MS_APP_TYPE_ID, user.data.id)
+      userApp = await UserApp.show(MS_APP_TYPE_ID, user.id)
 
       // create user app
       if (!userApp) {
         userApp = await UserApp.create(
           MS_APP_TYPE_ID,
-          user.data.id,
+          user.id,
           subject[0],
-          user.data.mail,
-          user.data.givenName,
+          user.mail,
+          user.givenName,
         )
       }
 
@@ -159,14 +160,12 @@ class FetchTeamCalendarActivities extends Task {
   }
 
   async getUserByEmailAddress (emailAddress) {
-    const queryParams = new URLSearchParams({
-      select: 'id,givenName,mail'
-    }).toString()
+    const url = `${Env.get('MS_GRAPH_API_URL')}users?$search="mail:${emailAddress}"`
 
-    const url = Env.get('MS_GRAPH_API_URL') + 'users/' + emailAddress +
-    '?$' + queryParams
-
-    const header = { Authorization: 'Bearer ' + await this.getAccessToken() }
+    const header = {
+      'Authorization': 'Bearer ' + await this.getAccessToken(),
+      'ConsistencyLevel': 'eventual'
+    }
 
     const response = await Fetch.call('get', url, header)
 
